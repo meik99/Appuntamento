@@ -41,6 +41,8 @@ app.post("/interactions", async (request, response) => {
         const {interaction} = message
         const {user} = interaction
 
+        console.log(request.body)
+
         switch (interaction.name) {
             case "poll":
                 return updatePoll(user, data, token, application_id, response)
