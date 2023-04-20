@@ -1,4 +1,4 @@
-import {testing} from "./poll.js";
+import {testing} from "./command.js";
 import * as assert from "assert";
 
 const testInput = "1.5.-6.5,8.5.,30.5-4.6."

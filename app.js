@@ -2,7 +2,7 @@ import {config} from "dotenv";
 import express from "express";
 import {VerifyDiscordRequest} from "./discord.js";
 import {InteractionType, InteractionResponseType} from "discord-interactions";
-import {createPoll} from "./poll/poll.js";
+import {createPoll} from "./poll/command.js";
 
 config()
 
