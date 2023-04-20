@@ -30,6 +30,8 @@ describe("appointments", () => {
             let overlappingMonth = testing.parseGroup(appointmentGroups[2])
 
             assert.equal(overlappingMonth.length, 6)
+
+            console.log(appointmentGroups.flatMap(group => testing.parseGroup(group)))
         })
     });
 })

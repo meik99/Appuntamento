@@ -2,11 +2,19 @@ import {v4} from "uuid";
 import {InteractionResponseType} from "discord-interactions";
 import moment from "moment";
 
+const PollState = {
+    Initialized: "initialized",
+    WaitForContinue: "waitForContinue",
+    WaitForClose: "waitForClose",
+    Closed: "closed"
+}
+
 class Poll {
     id = ""
     isGrouped = false
     appointments = ""
-    state = "initialised"
+    state = PollState.Initialized
+    options = []
 
     constructor(poll) {
         if (poll) {
@@ -18,6 +26,14 @@ class Poll {
 }
 
 const polls = {}
+
+function formatVotes(options) {
+    let result = ""
+
+    for (let i = 0; i < options.length; i++) {
+        result += `${options[i]} `
+    }
+}
 
 export const createPoll = (request, response) => {
     const {data} = request.body;
@@ -39,7 +55,24 @@ export const createPoll = (request, response) => {
 
     const appointments = optionAppointments.value
     const isGrouped = optionIsGrouped ? optionIsGrouped.value : false
+    const poll = new Poll({
+        appointments: appointments,
+        isGrouped: isGrouped
+    })
 
+    if (isGrouped) {
+        poll.state = PollState.WaitForContinue
+        poll.options = parseAppointmentGroups(appointments)
+
+        const message = `Poll Id: ${poll.id}
+        
+        Vote for the timespans that work for you:
+        
+        ${formatVotes(poll.options)}`
+    } else {
+        poll.state = PollState.WaitForClose
+        poll.options = parseAppointmentGroups(appointments).flatMap(group => parseGroup(group))
+    }
 
     response.status(200)
     return response.send({
