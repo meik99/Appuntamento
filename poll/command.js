@@ -1,6 +1,8 @@
 import moment from "moment";
 import {Poll, PollState} from "./poll.js";
 import {PollResponse} from "./response.js";
+import {parseAppointmentGroups, parseGroup} from "./date-parser.js";
+import {InteractionResponseType} from "discord-interactions";
 
 const polls = {}
 
@@ -44,63 +46,23 @@ export const createPoll = (request, response) => {
     return response.send(result)
 }
 
-const parseAppointmentGroups = (appointments) => {
-    return appointments.trim().split(",").map(entry => entry.trim())
+function formatVotes(poll) {
+    return Object.values(poll.votes).map(vote => `${vote.username}: ${vote.values.join(", ")}`)
 }
 
-const parseGroup = (group) => {
-    if (group.indexOf("-") > -1) {
-        const dates = group.split("-")
+export const updatePoll = (user, data, token, applicationId, response) => {
+    const poll = polls[data.custom_id]
 
-        if (dates.length !== 2) {
-            return []
+    poll.votes[user.id] = {values: data.values, username: user.username}
+
+    return response.send({
+        type: InteractionResponseType.UPDATE_MESSAGE,
+        data: {
+            content: `Poll Id: ${poll.id}
+            
+The following people have voted:
+
+* ${formatVotes(poll)}`,
         }
-
-        return parseMultipleDates(dates)
-    }
-
-    return parseSingleDate(group)
-}
-
-const prepareDateStrings = (dateStrings) => {
-    for (let i = 0; i < dateStrings.length; i++) {
-        if (dateStrings[i][dateStrings[i].length - 1] !== ".") {
-            dateStrings[i] = dateStrings[i] + "."
-        }
-    }
-
-    return dateStrings
-}
-
-const parseMultipleDates = (dateStrings) => {
-    dateStrings = prepareDateStrings(dateStrings)
-
-    const result = []
-    const dates = [moment(dateStrings[0], "DD.MM."), moment(dateStrings[1], "DD.MM.")]
-    let tmpDate = dates[0]
-
-    while(tmpDate.date() !== dates[1].date() || tmpDate.month() !== dates[1].month()) {
-        const date = tmpDate.toDate()
-
-        result.push(`${date.getDate()}.${date.getMonth()}.`)
-        tmpDate = moment(tmpDate).add(1, "day")
-    }
-
-    const date = tmpDate.toDate()
-
-    result.push(`${date.getDate()}.${date.getMonth()}.`)
-
-    return result
-}
-
-const parseSingleDate = (dateString) => {
-    dateString = prepareDateStrings([dateString])[0]
-
-    const date = moment(dateString, "DD.MM.").toDate()
-    return [`${date.getDate()}.${date.getMonth()}.`]
-}
-
-export const testing = {
-    parseAppointmentGroups,
-    parseGroup
+    })
 }

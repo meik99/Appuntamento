@@ -13,6 +13,7 @@ export class Poll {
     appointments = ""
     state = PollState.Initialized
     options = []
+    votes = {}
 
     constructor(poll) {
         if (poll) {

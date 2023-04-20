@@ -2,7 +2,7 @@ import {config} from "dotenv";
 import express from "express";
 import {VerifyDiscordRequest} from "./discord.js";
 import {InteractionType, InteractionResponseType} from "discord-interactions";
-import {createPoll} from "./poll/command.js";
+import {createPoll, updatePoll} from "./poll/command.js";
 
 config()
 
@@ -33,9 +33,21 @@ app.post("/interactions", async (request, response) => {
             return response.send({})
         }
 
-        const { name } = data;
+        const {name} = data;
 
         return commandSwitch(name, request, response)
+    } else if (type === InteractionType.MESSAGE_COMPONENT) {
+        const {message, token, application_id} = request.body
+        const {interaction} = message
+        const {user} = interaction
+
+        switch (interaction.name) {
+            case "poll":
+                return updatePoll(user, data, token, application_id, response)
+            default:
+                response.set(501)
+                return response.send({})
+        }
     }
 
     response.set(400)
