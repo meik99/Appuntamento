@@ -5,4 +5,7 @@ WORKDIR /out
 COPY . .
 
 RUN npm install
+
 ENTRYPOINT npm run serve
+
+EXPOSE 3000
