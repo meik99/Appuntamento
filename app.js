@@ -35,17 +35,17 @@ app.post("/interactions", async (request, response) => {
 
         const {name} = data;
 
-        return commandSwitch(name, request, response)
+        return await commandSwitch(name, request, response)
     } else if (type === InteractionType.MESSAGE_COMPONENT) {
-        const {message, token, application_id} = request.body
+        const {message, token, application_id, member} = request.body
         const {interaction} = message
-        const {user} = interaction
+        const {user} = member
 
         console.log(request.body)
 
         switch (interaction.name) {
             case "poll":
-                return updatePoll(user, data, token, application_id, response)
+                return await updatePoll(user, data, token, application_id, response)
             default:
                 response.set(501)
                 return response.send({})
@@ -56,12 +56,12 @@ app.post("/interactions", async (request, response) => {
     return response.send({})
 })
 
-const commandSwitch = (name, request, response) => {
+const commandSwitch = async (name, request, response) => {
     switch (name) {
         case "ping":
             return pong(response)
         case "poll":
-            return createPoll(request, response)
+            return await createPoll(request, response)
         default:
             response.set(501)
             return response.send({})

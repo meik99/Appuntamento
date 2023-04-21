@@ -1,3 +1,4 @@
 /.env
 /node_modules/
 /coverage/
+/poll/repository/credentials.json

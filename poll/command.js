@@ -3,10 +3,11 @@ import {Poll, PollState} from "./poll.js";
 import {PollResponse} from "./response.js";
 import {parseAppointmentGroups, parseGroup} from "./date-parser.js";
 import {InteractionResponseType} from "discord-interactions";
+import {FirebaseRepository} from "./repository/firebase.js";
 
-const polls = {}
+const repo = new FirebaseRepository()
 
-export const createPoll = (request, response) => {
+export const createPoll = async (request, response, repository = repo) => {
     const {data} = request.body;
 
     if (!data) {
@@ -23,7 +24,6 @@ export const createPoll = (request, response) => {
 
     const poll = Poll.fromOptions(options)
 
-
     if (poll.isGrouped) {
         poll.state = PollState.WaitForContinue
         poll.options = parseAppointmentGroups(poll.appointments)
@@ -31,7 +31,8 @@ export const createPoll = (request, response) => {
 
         console.log(JSON.stringify(result))
 
-        polls[poll.id] = poll
+        await repository.insert(poll)
+
         return response.send(result)
     }
 
@@ -42,18 +43,21 @@ export const createPoll = (request, response) => {
 
     console.log(JSON.stringify(result))
 
-    polls[poll.id] = poll
+    await repository.insert(poll)
+
     return response.send(result)
 }
 
 function formatVotes(poll) {
-    return Object.values(poll.votes).map(vote => `${vote.username}: ${vote.values.join(", ")}`)
+    return Object.values(poll.votes).map(vote => `* ${vote.username}: ${vote.values.join(", ")}`).join("\n")
 }
 
-export const updatePoll = (user, data, token, applicationId, response) => {
-    const poll = polls[data.custom_id]
+export const updatePoll = async (user, data, token, applicationId, response, repository = repo) => {
+    const poll = await repository.find(data.custom_id)
 
     poll.votes[user.id] = {values: data.values, username: user.username}
+
+    await repository.update(poll)
 
     return response.send({
         type: InteractionResponseType.UPDATE_MESSAGE,
@@ -62,7 +66,7 @@ export const updatePoll = (user, data, token, applicationId, response) => {
             
 The following people have voted:
 
-* ${formatVotes(poll)}`,
+${formatVotes(poll)}`,
         }
     })
 }
