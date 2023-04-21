@@ -1,7 +1,7 @@
 // This file is only used for the GCP deployment
-const functions = require('@google-cloud/functions-framework');
-const {VerifyDiscordRequest} = require("./discord.js");
-const {handleInteraction} = require("./common.js");
+import functions from "@google-cloud/functions-framework";
+import {VerifyDiscordRequest} from "./discord.js";
+import {handleInteraction} from "./common.js";
 
 const PUBLIC_KEY = process.env.PUBLIC_KEY
 
